@@ -1,0 +1,170 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <locale.h>
+
+
+struct Node {
+    int data;
+    struct Node* left;
+    struct Node* right;
+};
+
+
+struct Node* root = NULL;
+
+
+struct Node* CreateTree(struct Node* root_ptr, struct Node* r, int data) {
+    if (r == NULL) {
+        r = (struct Node*)malloc(sizeof(struct Node));
+        if (r == NULL) {
+            printf("Ошибка выделения памяти\n");
+            exit(0);
+        }
+        r->left = NULL;
+        r->right = NULL;
+        r->data = data;
+        if (root_ptr == NULL) return r;
+        if (data < root_ptr->data) root_ptr->left = r;
+        else root_ptr->right = r;
+        return r;
+    }
+
+    
+    if (data == r->data) {
+        printf("Элемент %d уже существует в дереве (дубликат пропущен).\n", data);
+        return root_ptr;
+    }
+
+    if (data < r->data) {
+        if (r->left == NULL) {
+            struct Node* newNode = (struct Node*)malloc(sizeof(struct Node));
+            if (newNode == NULL) {
+                printf("Ошибка выделения памяти\n");
+                exit(0);
+            }
+            newNode->left = NULL;
+            newNode->right = NULL;
+            newNode->data = data;
+            r->left = newNode;
+        }
+        else {
+            CreateTree(r, r->left, data);
+        }
+    }
+    else {
+        if (r->right == NULL) {
+            struct Node* newNode = (struct Node*)malloc(sizeof(struct Node));
+            if (newNode == NULL) {
+                printf("Ошибка выделения памяти\n");
+                exit(0);
+            }
+            newNode->left = NULL;
+            newNode->right = NULL;
+            newNode->data = data;
+            r->right = newNode;
+        }
+        else {
+            CreateTree(r, r->right, data);
+        }
+    }
+    return root_ptr;
+
+
+}
+
+
+struct Node* SearchTree(struct Node* r, int key) {
+    if (r == NULL || r->data == key) {
+        return r;
+    }
+    if (key < r->data) {
+        return SearchTree(r->left, key);
+    }
+    return SearchTree(r->right, key);
+}
+
+
+int CountOccurrences(struct Node* r, int key) {
+    if (r == NULL) {
+        return 0;
+    }
+    int count = (r->data == key) ? 1 : 0;
+    return count + CountOccurrences(r->left, key) + CountOccurrences(r->right, key);
+}
+
+
+void print_tree(struct Node* r, int l) {
+    if (r == NULL) {
+        return;
+    }
+    print_tree(r->right, l + 1);
+    for (int i = 0; i < l; i++) {
+        printf("   ");
+    }
+    printf("%d\n", r->data);
+    print_tree(r->left, l + 1);
+}
+
+
+int main() {
+    setlocale(LC_ALL, "");
+    int choice, value;
+
+    do {
+        printf("\n--- Меню бинарного дерева поиска ---\n");
+        printf("1. Добавить элемент в дерево\n");
+        printf("2. Вывести дерево\n");
+        printf("3. Найти элемент в дереве\n");
+        printf("4. Подсчитать число вхождений элемента\n");
+        printf("5. Выход (-1 для завершения ввода при построении)\n");
+        printf("Введите ваш выбор: ");
+
+        if (scanf_s("%d", &choice) != 1) {
+            printf("Ошибка ввода!\n");
+            break;
+        }
+
+        switch (choice) {
+        case 1:
+            printf("Введите число (-1 для окончания построения): ");
+            while (scanf_s("%d", &value) == 1 && value != -1) {
+                root = CreateTree(root, root, value);
+                printf("Введите число (-1 для окончания): ");
+            }
+            break;
+        case 2:
+            printf("\nСтруктура дерева (повернуто на 90 градусов):\n");
+            if (root == NULL) {
+                printf("Дерево пусто.\n");
+            }
+            else {
+                print_tree(root, 0);
+            }
+            break;
+        case 3:
+            printf("Введите значение для поиска: ");
+            scanf_s("%d", &value);
+            if (SearchTree(root, value) != NULL) {
+                printf("Элемент %d найден в дереве!\n", value);
+            }
+            else {
+                printf("Элемент %d не найден в дереве.\n", value);
+            }
+            break;
+        case 4:
+            printf("Введите значение для подсчета вхождений: ");
+            scanf_s("%d", &value);
+            printf("Число вхождений элемента %d: %d\n", value, CountOccurrences(root, value));
+            break;
+        case 5:
+            printf("Выход из программы.\n");
+            break;
+        default:
+            printf("Неверный выбор. Повторите попытку.\n");
+        }
+    } while (choice != 5);
+
+    return 0;
+
+
+}
